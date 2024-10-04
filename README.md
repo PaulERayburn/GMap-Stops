@@ -30,7 +30,7 @@ To run the application, you need:
 
 ## Usage Instructions
 1. After opening the HTML in your browser, Enter a Route Name *This will be used later to re-load. Choose a unique name each time as it will create duplicates (*the current version does not overwrite so you will just end up with multiples with the same name).
-2. ENter the start time. *Future versions should have a start date and time to better utilize Google Maps traffic flow estimations. This is experimental as I am not certain how it handles offset start times.
+2. Enter the start time. *Future versions should have a start date and time to better utilize Google Maps traffic flow estimations. This is experimental as I am not certain how it handles offset start times.
 3. Enter Origin and Destination addreses *They can be the same *I am not sure how it handles "Home addresses so you may need to choose a neighbouring address if your home or work destinations are already set in Google.
 4. Add in new stops. Currently, auto address search is not enabled so I would suggest using a separate Google Maps tab or browser window to search the correct address and then copy pasting. You may wish to preplan a route in the default Google Maps page and then copy paste over each dress, and then add in your stopover duration. You can re-order in the app, but I find the Google version a little smoother with auto updates.
 5. Once addresses are added hit the CALCULATE ROUTE button, and if you are happy, hit SAVE ROUTE
