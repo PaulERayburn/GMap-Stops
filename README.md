@@ -26,7 +26,7 @@ To run the application, you need:
    
 2. Find and replace "YOUR_NEW_API_KEY&libraries=places" with your API *If you intend on using this anywhere other than your own machine ensure you take steps to protect your API.
 3. Once you have replaced your API save the file as an HTML
-4. Open the HTML
+4. Open the HTML with your preferred browser.
 
 ## Usage Instructions
 1. After opening the HTML in your browser, Enter a Route Name *This will be used later to re-load. Choose a unique name each time as it will create duplicates (*the current version does not overwrite so you will just end up with multiples with the same name).
