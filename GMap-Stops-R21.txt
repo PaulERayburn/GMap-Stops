@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Interactive Draggable Map with Trip Duration and Summary</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_NEW_API_KEY&libraries=places"></script>
+    <style>
+      .stop-input {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
+      }
+    </style>
+    <script>
+      let map, directionsService, directionsRenderer;
+
+      function initMap() {
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+          draggable: true, // Enable dragging to alter the route
+        });
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 7,
+          center: { lat: 50.263795, lng: -119.270764 }, // Default center (New York City)
+        });
+
+        directionsRenderer.setMap(map);
+
+        // Listener for when the user drags the route
+        directionsRenderer.addListener('directions_changed', function () {
+          calculateRoute(true); // Recalculate route after dragging
+        });
+
+        loadSavedRoutes(); // Load saved routes into the dropdown when the page loads
+      }
+
+      function calculateRoute(isDrag = false) {
+        const startTimeInput = document.getElementById('start-time').value;
+        const startTime = new Date();
+        const [hours, minutes] = startTimeInput.split(':');
+        startTime.setHours(parseInt(hours));
+        startTime.setMinutes(parseInt(minutes));
+
+        const stops = [];
+        const stopInputs = document.querySelectorAll('.stop-input');
+
+        stopInputs.forEach(stopInput => {
+          const address = stopInput.querySelector('.stop-address').value;
+          const duration = parseInt(stopInput.querySelector('.stop-duration').value);
+          stops.push({ location: address, duration: duration });
+        });
+
+        const waypoints = stops.map(stop => ({
+          location: stop.location,
+          stopover: true
+        }));
+
+        if (!isDrag) {
+          directionsService.route(
+            {
+              origin: document.getElementById('origin').value,
+              destination: document.getElementById('destination').value,
+              waypoints: waypoints,
+              travelMode: 'DRIVING',
+            },
+            function (response, status) {
+              if (status === 'OK') {
+                directionsRenderer.setDirections(response);
+                displayRouteInfo(startTime, response, stops);
+              } else {
+                alert('Directions request failed due to ' + status);
+              }
+            }
+          );
+        } else {
+          const response = directionsRenderer.getDirections();
+          displayRouteInfo(startTime, response, stops);
+        }
+      }
+
+      function displayRouteInfo(startTime, response, stops) {
+        const route = response.routes[0];
+        let totalTravelDistance = 0;
+        let totalTravelTime = 0;
+        let totalStopoverTime = 0;
+        let currentTime = new Date(startTime);
+        let result = `Trip starts at: ${currentTime.toLocaleTimeString()}<br><br>`;
+
+        route.legs.forEach((leg, index) => {
+          const legDuration = leg.duration.value / 60; // Duration in minutes
+          const legDistance = leg.distance.value / 1000; // Distance in kilometers
+          const stopDuration = stops[index]?.duration || 0;
+
+          totalTravelDistance += legDistance; // Accumulate total travel distance
+          totalTravelTime += legDuration; // Accumulate total travel time
+          totalStopoverTime += stopDuration; // Accumulate total stopover time
+
+          // Update arrival and departure times at each stop
+          currentTime.setMinutes(currentTime.getMinutes() + legDuration);
+          if (index < stops.length) {
+            result += `Arrive at Stop ${index + 1} (${stops[index].location}): ${currentTime.toLocaleTimeString()}<br>`;
+            result += `Stopover Duration: ${stopDuration} minutes<br>`;
+            currentTime.setMinutes(currentTime.getMinutes() + stopDuration);
+            result += `Depart at: ${currentTime.toLocaleTimeString()}<br><br>`;
+          } else {
+            result += `Arrive at final destination: ${currentTime.toLocaleTimeString()}<br>`;
+          }
+        });
+
+        // Format total duration into hours and minutes
+        const totalDurationInMinutes = Math.round(totalTravelTime + totalStopoverTime);
+        const hours = Math.floor(totalDurationInMinutes / 60);
+        const minutes = totalDurationInMinutes % 60;
+        const formattedDuration = `${hours} hrs ${minutes} mins`;
+
+        // Add summary details
+        result += `<strong>Summary:</strong><br>`;
+        result += `Total Travel Distance: ${totalTravelDistance.toFixed(2)} km<br>`;
+        result += `Total Travel Time: ${Math.round(totalTravelTime)} minutes (${Math.floor(totalTravelTime / 60)} hrs ${Math.round(totalTravelTime % 60)} mins)<br>`;
+        result += `Total Stopover Time: ${totalStopoverTime} minutes<br>`;
+        result += `Total Trip Duration (including stops): ${formattedDuration} (${totalDurationInMinutes} minutes)<br>`;
+
+        document.getElementById('output').innerHTML = result;
+      }
+
+      function addStopInput(stopData = null) {
+        const stopInputsContainer = document.getElementById('stop-inputs');
+        const stopInputId = `stop-${Date.now()}`;
+
+        const stopInputHTML = `
+          <div class="stop-input" id="${stopInputId}">
+            <label>Stop Address: <input type="text" class="stop-address" required value="${stopData ? stopData.location : ''}"></label>
+            <label>Stop Duration (minutes): <input type="number" class="stop-duration" required value="${stopData ? stopData.duration : ''}"></label>
+            <button type="button" onclick="removeStopInput('${stopInputId}')">Remove Stop</button>
+            <br><br>
+          </div>
+        `;
+        stopInputsContainer.insertAdjacentHTML('beforeend', stopInputHTML);
+      }
+
+      function removeStopInput(id) {
+        const stopInput = document.getElementById(id);
+        if (stopInput) {
+          stopInput.remove();
+        }
+      }
+
+      function saveRoute() {
+        const routeName = document.getElementById('route-name').value.trim();
+        if (!routeName) {
+          alert("Please enter a name for the route.");
+          return;
+        }
+
+        const routeData = {
+          name: routeName,
+          startTime: document.getElementById('start-time').value,
+          origin: document.getElementById('origin').value,
+          destination: document.getElementById('destination').value,
+          stops: []
+        };
+
+        document.querySelectorAll('.stop-input').forEach(stopInput => {
+          const address = stopInput.querySelector('.stop-address').value;
+          const duration = parseInt(stopInput.querySelector('.stop-duration').value);
+          routeData.stops.push({ location: address, duration: duration });
+        });
+
+        let savedRoutes = JSON.parse(localStorage.getItem('savedRoutes')) || [];
+        savedRoutes.push(routeData);
+        localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
+
+        alert('Route saved!');
+        loadSavedRoutes(); 
+      }
+
+      function loadRoute() {
+        const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes')) || [];
+        const selectedRouteName = document.getElementById('saved-routes').value;
+        const routeData = savedRoutes.find(route => route.name === selectedRouteName);
+
+        if (routeData) {
+          document.getElementById('start-time').value = routeData.startTime;
+          document.getElementById('origin').value = routeData.origin;
+          document.getElementById('destination').value = routeData.destination;
+
+          document.getElementById('stop-inputs').innerHTML = ''; 
+          routeData.stops.forEach(stop => addStopInput(stop));
+          alert('Route loaded!');
+        } else {
+          alert('Route not found.');
+        }
+      }
+
+      function loadSavedRoutes() {
+        const savedRoutes = JSON.parse(localStorage.getItem('savedRoutes')) || [];
+        const savedRoutesDropdown = document.getElementById('saved-routes');
+        savedRoutesDropdown.innerHTML = '';
+
+        savedRoutes.forEach(route => {
+          const option = document.createElement('option');
+          option.value = route.name;
+          option.textContent = route.name;
+          savedRoutesDropdown.appendChild(option);
+        });
+      }
+    </script>
+  </head>
+  <body onload="initMap()">
+    <h3>Interactive Draggable Map with Trip Duration and Summary</h3>
+
+    <div>
+      <label>Route Name: <input type="text" id="route-name" placeholder="Enter route name" required size="60"></label><br><br>
+      <label>Start Time (HH:MM): <input type="time" id="start-time" required></label><br><br>
+      <label>Origin Address: <input type="text" id="origin" required></label><br><br>
+      <label>Destination Address: <input type="text" id="destination" required></label><br><br>
+
+      <div id="stop-inputs"></div>
+      <button onclick="addStopInput()">Add Stop</button><br><br>
+      <button onclick="calculateRoute()">Calculate Route</button><br><br>
+      <button onclick="saveRoute()">Save Route</button>
+
+      <label for="saved-routes">Load Saved Route:</label>
+      <select id="saved-routes">
+        <option disabled selected>Select a saved route</option>
+      </select>
+      <button onclick="loadRoute()">Load Route</button>
+    </div>
+
+    <div id="map" style="height: 500px; width: 100%;"></div>
+    <div id="output" style="padding: 20px; font-family: Arial, sans-serif;"></div>
+  </body>
+</html>
