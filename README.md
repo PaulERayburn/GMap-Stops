@@ -9,7 +9,7 @@ This is an interactive map application that allows users to plan driving routes 
 - **Real-Time Calculations**: Automatically calculate travel time, stop durations, and total trip duration.
 - **Save and Load Routes**: Save your routes to local storage and load them for future use.
 - **Detailed Summary**: Provides a summary of total travel distance, total travel time, stopover time, and total trip duration in an easy-to-read format.
-- **Internet required** for initial loading. Once loaded, the map can be viewed while start times, and stopovers can be updaated even if there is no internet connection.
+- **Internet required** for initial loading. Once loaded, the map can be viewed while start times, and stopovers can be updated even if there is no internet connection.
 
 ## Usage
 
