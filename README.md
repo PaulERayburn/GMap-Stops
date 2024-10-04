@@ -1,6 +1,7 @@
 # Interactive Map Application
 
-This is an interactive map application that allows users to plan driving routes with multiple stops, including draggable routes, customizable stop durations, and real-time travel calculations. Users can save and load routes, calculate travel time, and display the total trip duration in both minutes and "hours and minutes" format. The application also provides a summary of travel distance, travel time, and stopover time.
+This is an interactive map application that allows users to plan driving routes with multiple stops, including draggable routes, customizable stop durations, and real-time travel calculations. Users can save and load routes, calculate travel time, and display the total trip duration in both minutes and "hours and minutes" format. The application also provides a summary of travel distance, travel time, and stopover time. Presently, the app is set up to operate as a local html file and requires a Google Maps Platform API Key. Future versions will include online access.
+
 
 ## Features
 - **Draggable Routes**: Users can manually drag and adjust the routes on the map.
@@ -8,6 +9,7 @@ This is an interactive map application that allows users to plan driving routes 
 - **Real-Time Calculations**: Automatically calculate travel time, stop durations, and total trip duration.
 - **Save and Load Routes**: Save your routes to local storage and load them for future use.
 - **Detailed Summary**: Provides a summary of total travel distance, total travel time, stopover time, and total trip duration in an easy-to-read format.
+- **Internet required** for initial loading. Once loaded, the map can be viewed while start times, and stopovers can be updaated even if there is no internet connection.
 
 ## Usage
 
